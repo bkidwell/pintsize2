@@ -6,25 +6,32 @@
 namespace Pintsize;
 
 use Phergie\Irc\Connection;
-use Symfony\Component\Yaml\Yaml;
 
 define('APPDIR', dirname(__DIR__));
 require APPDIR . '/vendor/autoload.php';
 
 (function () {
-    $config = Yaml::parse(file_get_contents(APPDIR . '/conf/pintsize.conf.yaml'));
-
-    $phergieConfig = array(
-        // Plugins to include for all connections
-        'plugins' => array(
-            new Phergie\PintsizePlugin
-        ),
-        'connections' => array()
-    );
-
-    foreach ($config['connections'] as $conn) {
-        $phergieConfig['connections'][] = new Connection($conn);
+    $nick = Config::get('connection.nickname');
+    $channels = [];
+    foreach (Config::get('channels') as $channel) {
+        $channels[] = $channel['channel'];
     }
+    $phergieConfig = array(
+        'plugins' => array(
+            new Phergie\PintsizePlugin,
+            new \PSchwisow\Phergie\Plugin\AltNick\Plugin([
+                'nicks' => ["{$nick}_2", "{$nick}_3", "{$nick}_4"],
+                'recovery' => true,
+            ]),
+            new \Phergie\Irc\Plugin\React\AutoJoin\Plugin(array(
+                'channels' => $channels,
+                'wait-for-nickserv' => false,
+            )),
+        ),
+        'connections' => array(
+            new Connection(Config::get('connection'))
+        )
+    );
 
     $bot = new \Phergie\Irc\Bot\React\Bot;
     $bot->setConfig($phergieConfig);

@@ -12,7 +12,14 @@ namespace Pintsize\Phergie;
 
 use Phergie\Irc\Bot\React\AbstractPlugin;
 use Phergie\Irc\Bot\React\EventQueueInterface as Queue;
-use Phergie\Irc\Event\EventInterface as Event;
+use Phergie\Irc\Bot\React\EventEmitterAwareInterface;
+use Phergie\Irc\Event\UserEventInterface;
+use Phergie\Irc\Event\EventInterface;
+use Pintsize\Models\Channel as Channel;
+use Pintsize\Config as Config;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
+use Evenement\EventEmitterInterface;
 
 /**
  * Plugin class.
@@ -20,41 +27,84 @@ use Phergie\Irc\Event\EventInterface as Event;
  * @category Pintsize
  * @package Pintsize\Phergie\PintsizePlugin
  */
-class PintsizePlugin extends AbstractPlugin
+class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, EventEmitterAwareInterface
 {
-    /**
-     * Accepts plugin configuration.
-     *
-     * Supported keys:
-     *
-     *
-     *
-     * @param array $config
-     */
+    private $channels;
+    protected $logger;
+    private $joinedall = false;
+    protected $emitter;
+    
     public function __construct(array $config = [])
     {
-
+        foreach(Config::get('channels') as $c) {
+            $channel = new Channel($c['channel'], $c['announcemode']);
+            $this->channels[$c['channel']] = $channel;
+        }
     }
 
-    /**
-     *
-     *
-     * @return array
-     */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+    }
+    
+    public function setEventEmitter(EventEmitterInterface $emitter)
+    {
+        $this->emitter = $emitter;
+    }
+    
     public function getSubscribedEvents()
     {
         return [
-            'irc.' => 'handleEvent',
+            'irc.received.join' => 'onJoin',
+            'pintsize.joinedall' => 'onReady',
+            //'irc.received.part' => 'onPart',
+            //'irc.received.kick' => 'onKick',
         ];
     }
 
-    /**
-     *
-     *
-     * @param \Phergie\Irc\Event\EventInterface $event
-     * @param \Phergie\Irc\Bot\React\EventQueueInterface $queue
-     */
-    public function handleEvent(Event $event, Queue $queue)
+    public function onJoin(UserEventInterface $event, Queue $queue)
     {
+        $nick = $event->getNick();
+        $myNick = $event->getConnection()->getNickname();
+        $channelName = $event->getSource();
+        $this->logger->debug("onJoin:\n  nick: {$nick}\n  channel: {$channelName}\n  my nick: {$myNick}");
+        if ($nick == $myNick) {
+            $channel = $this->channels[$channelName];
+            if(!isset($channel)) { return; }
+            $channel->joined = true;
+            $this->logger->debug("onJoin: bot has joined {$channel->name}");
+            $this->checkJoinedall($queue);
+        }
+    }
+
+    public function onReady(Queue $queue)
+    {
+        $this->say('Hello world.', $queue);
+    }
+    
+    private function say($message, Queue $queue, Channel $channel = null)
+    {   
+        if(isset($channel)) {
+            $list = array($channel);
+        } else {
+            $list =& $this->channels;
+        }
+        foreach($list as $item) {
+            if(!$item->joined) { continue; }
+            if($item->announcemode == Channel::MODE_NOTICE) {
+                $queue->ircNotice($item->name, $message);
+            } elseif($item->announcemode == Channel::MODE_PRIVMSG) {
+                $queue->ircPrivmsg($item->name, $message);
+            }
+        }
+    }
+    
+    private function checkJoinedall(Queue $queue)
+    {
+        if($this->joinedall) { return; }
+        foreach($this->channels as $channel) {
+            if($channel->joined == false) { return; }
+        }
+        $this->emitter->emit('pintsize.joinedall', array($queue));
     }
 }

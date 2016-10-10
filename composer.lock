@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "0fb328e589cd8b773a06d6bd525793cf",
+    "content-hash": "99f3e318ec41e88f38426238e7f1df63",
     "packages": [
         {
             "name": "evenement/evenement",
@@ -132,35 +132,28 @@
         },
         {
             "name": "phergie/phergie-irc-bot-react",
-            "version": "1.3.0",
+            "version": "2.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phergie/phergie-irc-bot-react.git",
-                "reference": "ce94f71df696c7d379fcdd6c7b60aef73b8d8a78"
+                "reference": "11ecece5954668bb55bd0fb96b4b8cedbd64e43c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phergie/phergie-irc-bot-react/zipball/ce94f71df696c7d379fcdd6c7b60aef73b8d8a78",
-                "reference": "ce94f71df696c7d379fcdd6c7b60aef73b8d8a78",
+                "url": "https://api.github.com/repos/phergie/phergie-irc-bot-react/zipball/11ecece5954668bb55bd0fb96b4b8cedbd64e43c",
+                "reference": "11ecece5954668bb55bd0fb96b4b8cedbd64e43c",
                 "shasum": ""
             },
             "require": {
                 "evenement/evenement": "~2.0",
                 "monolog/monolog": "~1.6",
-                "phergie/phergie-irc-client-react": "~2.2",
+                "phergie/phergie-irc-client-react": "~3.1",
                 "phergie/phergie-irc-connection": "~2.0",
                 "phergie/phergie-irc-event": "~1.0",
-                "php": ">=5.4.2"
+                "php": ">=5.5"
             },
             "require-dev": {
-                "codeclimate/php-test-reporter": "~0.1",
-                "phake/phake": "~2.0",
-                "phpunit/phpunit": "~4.6",
-                "satooshi/php-coveralls": "0.6.1",
-                "symfony/config": "~2.0",
-                "symfony/console": "~2.0",
-                "symfony/filesystem": "~2.0",
-                "symfony/stopwatch": "~2.0"
+                "phergie/phergie-irc-bot-react-development": "~1.0"
             },
             "bin": [
                 "bin/phergie"
@@ -181,20 +174,20 @@
                 "irc",
                 "react"
             ],
-            "time": "2015-07-16 17:22:01"
+            "time": "2016-03-07 18:44:52"
         },
         {
             "name": "phergie/phergie-irc-client-react",
-            "version": "2.3.0",
+            "version": "3.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phergie/phergie-irc-client-react.git",
-                "reference": "5d0cf542ca9391e515eddef3554815f80bda60ed"
+                "reference": "471b9e10e98ba874e642e5de48d7dab32b96b5a4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phergie/phergie-irc-client-react/zipball/5d0cf542ca9391e515eddef3554815f80bda60ed",
-                "reference": "5d0cf542ca9391e515eddef3554815f80bda60ed",
+                "url": "https://api.github.com/repos/phergie/phergie-irc-client-react/zipball/471b9e10e98ba874e642e5de48d7dab32b96b5a4",
+                "reference": "471b9e10e98ba874e642e5de48d7dab32b96b5a4",
                 "shasum": ""
             },
             "require": {
@@ -202,7 +195,7 @@
                 "phergie/phergie-irc-connection": "~2.0",
                 "phergie/phergie-irc-generator": "~1.5",
                 "phergie/phergie-irc-parser": "~2.0",
-                "php": ">=5.4.2",
+                "php": ">=5.5",
                 "psr/log": "~1.0",
                 "react/dns": "~0.4.0",
                 "react/event-loop": "~0.4.0",
@@ -210,15 +203,11 @@
                 "react/socket-client": "~0.4.2",
                 "react/stream": "~0.4.2"
             },
+            "conflict": {
+                "phergie/phergie-irc-plugin-react-pong": "*"
+            },
             "require-dev": {
-                "codeclimate/php-test-reporter": "~0.1",
-                "phake/phake": "~2.1",
-                "phpunit/phpunit": "~4.6",
-                "satooshi/php-coveralls": "0.6.1",
-                "symfony/config": "~2.0",
-                "symfony/console": "~2.0",
-                "symfony/filesystem": "~2.0",
-                "symfony/stopwatch": "~2.0"
+                "phergie/phergie-irc-bot-react-development": "~1.0.0"
             },
             "type": "library",
             "autoload": {
@@ -236,7 +225,7 @@
                 "irc",
                 "react"
             ],
-            "time": "2015-07-16 17:05:02"
+            "time": "2016-02-19 15:05:32"
         },
         {
             "name": "phergie/phergie-irc-connection",
@@ -389,6 +378,89 @@
                 "parser"
             ],
             "time": "2016-03-07 14:49:25"
+        },
+        {
+            "name": "phergie/phergie-irc-plugin-react-autojoin",
+            "version": "2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phergie/phergie-irc-plugin-react-autojoin.git",
+                "reference": "110ce64f3099a63f65b1229c3552b58dead6fa96"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phergie/phergie-irc-plugin-react-autojoin/zipball/110ce64f3099a63f65b1229c3552b58dead6fa96",
+                "reference": "110ce64f3099a63f65b1229c3552b58dead6fa96",
+                "shasum": ""
+            },
+            "require": {
+                "phergie/phergie-irc-bot-react": "~2"
+            },
+            "require-dev": {
+                "phergie/phergie-irc-bot-react-development": "~1.0"
+            },
+            "suggest": {
+                "phergie/phergie-irc-plugin-react-nickserv": "Enables wait-for-nickserv autojoin functionality"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Phergie\\Irc\\Plugin\\React\\AutoJoin\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-2-Clause"
+            ],
+            "description": "Phergie plugin for automatically joining IRC channels",
+            "keywords": [
+                "bot",
+                "irc",
+                "plugin",
+                "react"
+            ],
+            "time": "2015-12-21 23:43:28"
+        },
+        {
+            "name": "pschwisow/phergie-irc-plugin-react-altnick",
+            "version": "2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PSchwisow/phergie-irc-plugin-react-altnick.git",
+                "reference": "112b692cbbf9242450cc8caf073f6c021db29fba"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PSchwisow/phergie-irc-plugin-react-altnick/zipball/112b692cbbf9242450cc8caf073f6c021db29fba",
+                "reference": "112b692cbbf9242450cc8caf073f6c021db29fba",
+                "shasum": ""
+            },
+            "require": {
+                "phergie/phergie-irc-bot-react": "~2"
+            },
+            "require-dev": {
+                "codeclimate/php-test-reporter": "dev-master",
+                "phake/phake": "2.0.0-beta2",
+                "phpunit/phpunit": "4.1.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PSchwisow\\Phergie\\Plugin\\AltNick\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-2-Clause"
+            ],
+            "description": "Phergie plugin for switching to alternate nicks when primary is not available",
+            "keywords": [
+                "bot",
+                "irc",
+                "phergie",
+                "plugin"
+            ],
+            "time": "2016-04-22 22:30:21"
         },
         {
             "name": "psr/log",
