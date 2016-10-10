@@ -37,6 +37,7 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
     private $ignoredNicks = [];
     private $authedNicks = [];
     private $pendingCmd = [];
+    private $queue;
 
     public function __construct(array $config = [])
     {
@@ -63,7 +64,7 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
     {
         return [
             'irc.received.join' => 'onJoin',
-            'pintsize.joinedall' => 'onReady',
+            'pintsize.ready' => 'onReady',
             'irc.received.privmsg' => 'onPrivmsg',
             'irc.received.quit' => 'onQuit',
             'irc.received.each' => 'onReceivedEach',
@@ -97,7 +98,8 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
 
     public function onReady(Queue $queue)
     {
-        $this->say('Hello world.', $queue);
+        $this->queue = $queue;
+        $this->say('Hello world.');
     }
 
     public function onPrivmsg(UserEventInterface $event, Queue $queue)
@@ -111,20 +113,20 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
         $private = $this->isChannelName($receiver);
 
         if($text == '!test') {
-            $this->checkAuth($nick, $queue, $receiver, function(Queue $queue, $params) {
+            $this->checkAuth($nick, $receiver, function($params) {
                 $nick = $params['nick'];
                 $replyTo = $params['replyTo'];
                 $authed = $params['authed'];
-                $this->reply("$nick is authed? $authed", $queue, $replyTo, $nick);
+                $this->reply("$nick is authed? $authed", $replyTo, $nick);
             });
         }
     }
 
-    private function checkAuth($nick, Queue $queue, $replyTo, $callback)
+    private function checkAuth($nick, $replyTo, $callback)
     {
         $this->logger->debug("Checking auth for $nick");
         if(array_key_exists($nick, $this->authedNicks)) {
-            $callback($queue, array(
+            $callback(array(
                 'nick' => $nick,
                 'replyTo' => $replyTo,
                 'authed' => $this->authedNicks[$nick]
@@ -141,7 +143,7 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
             'callback' => $callback
         );
         $this->logger->debug("Sent WHOIS $nick");
-        $queue->ircWhois($nick);
+        $this->queue->ircWhois($nick);
     }
 
     public function onReceivedEach(EventInterface $event, Queue $queue)
@@ -169,7 +171,7 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
             unset($this->pendingCmd[$nick]);
 
             $params['authed'] = $this->authedNicks[$nick];
-            $callback($queue, $params);
+            $callback($params);
         }
 
         // Cleanup
@@ -181,7 +183,7 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
     }
 
 
-    private function say($message, Queue $queue, Channel $channel = null)
+    private function say($message, Channel $channel = null)
     {
         if(isset($channel)) {
             $list = array($channel);
@@ -191,21 +193,21 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
         foreach($list as $item) {
             if(!$item->joined) { continue; }
             if($item->announcemode == Channel::MODE_NOTICE) {
-                $queue->ircNotice($item->name, $message);
+                $this->queue->ircNotice($item->name, $message);
             } elseif($item->announcemode == Channel::MODE_PRIVMSG) {
-                $queue->ircPrivmsg($item->name, $message);
+                $this->queue->ircPrivmsg($item->name, $message);
             }
         }
     }
-    private function reply($message, Queue $queue, $receiver, $nick)
+    private function reply($message, $receiver, $nick)
     {
         if($this->isChannelName($receiver)) {
             $channel = $this->channels[$receiver];
             if(isset($channel)) {
-                $this->say($message, $queue, $channel);
+                $this->say($message, $channel);
             }
         } else {
-            $queue->ircPrivmsg($nick, $message);
+            $this->queue->ircPrivmsg($nick, $message);
         }
     }
 
@@ -215,7 +217,7 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
         foreach($this->channels as $channel) {
             if($channel->joined == false) { return; }
         }
-        $this->emitter->emit('pintsize.joinedall', array($queue));
+        $this->emitter->emit('pintsize.ready', array($queue));
     }
 
     private function isNickIgnored(UserEventInterface $event)
