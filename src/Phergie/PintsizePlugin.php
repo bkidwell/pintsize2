@@ -14,6 +14,7 @@ use Phergie\Irc\Bot\React\AbstractPlugin;
 use Phergie\Irc\Bot\React\EventQueueInterface as Queue;
 use Phergie\Irc\Bot\React\EventEmitterAwareInterface;
 use Phergie\Irc\Event\UserEventInterface;
+use Phergie\Irc\Event\ServerEventInterface;
 use Phergie\Irc\Event\EventInterface;
 use Pintsize\Models\Channel as Channel;
 use Pintsize\Config as Config;
@@ -33,12 +34,18 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
     protected $logger;
     private $joinedall = false;
     protected $emitter;
-    
+    private $ignoredNicks = [];
+    private $authedNicks = [];
+    private $pendingCmd = [];
+
     public function __construct(array $config = [])
     {
         foreach(Config::get('channels') as $c) {
             $channel = new Channel($c['channel'], $c['announcemode']);
             $this->channels[$c['channel']] = $channel;
+        }
+        foreach(Config::get('ignoredNicks') as $i) {
+            $this->ignoredNicks[] = $i;
         }
     }
 
@@ -46,18 +53,21 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
     {
         $this->logger = $logger;
     }
-    
+
     public function setEventEmitter(EventEmitterInterface $emitter)
     {
         $this->emitter = $emitter;
     }
-    
+
     public function getSubscribedEvents()
     {
         return [
             'irc.received.join' => 'onJoin',
             'pintsize.joinedall' => 'onReady',
-            //'irc.received.part' => 'onPart',
+            'irc.received.privmsg' => 'onPrivmsg',
+            'irc.received.quit' => 'onQuit',
+            'irc.received.each' => 'onReceivedEach',
+            'irc.received.rpl_endofwhois' => 'onWhoisDone',
             //'irc.received.kick' => 'onKick',
         ];
     }
@@ -77,13 +87,102 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
         }
     }
 
+    public function onQuit(UserEventInterface $event, Queue $queue)
+    {
+        $nick = $event->getNick();
+        if(array_key_exists($nick, $this->authedNicks)) {
+            unset($this->authedNicks[$nick]);
+        }
+    }
+
     public function onReady(Queue $queue)
     {
         $this->say('Hello world.', $queue);
     }
-    
+
+    public function onPrivmsg(UserEventInterface $event, Queue $queue)
+    {
+        if($this->isNickIgnored($event)) { return; }
+        $nick = $event->getNick();
+        $params = $event->getParams();
+        $this->logger->debug('onPrivMsg', $params);
+        $receiver = $params['receivers'];
+        $text = $params['text'];
+        $private = $this->isChannelName($receiver);
+
+        if($text == '!test') {
+            $this->checkAuth($nick, $queue, $receiver, function(Queue $queue, $params) {
+                $nick = $params['nick'];
+                $replyTo = $params['replyTo'];
+                $authed = $params['authed'];
+                $this->reply("$nick is authed? $authed", $queue, $replyTo, $nick);
+            });
+        }
+    }
+
+    private function checkAuth($nick, Queue $queue, $replyTo, $callback)
+    {
+        $this->logger->debug("Checking auth for $nick");
+        if(array_key_exists($nick, $this->authedNicks)) {
+            $callback($queue, array(
+                'nick' => $nick,
+                'replyTo' => $replyTo,
+                'authed' => $this->authedNicks[$nick]
+            ));
+            return;
+        }
+        $this->pendingCmd[$nick] = array(
+            'params' => array(
+                'nick' => $nick,
+                'replyTo' => $replyTo,
+                'authed' => null
+            ),
+            'timestamp' => time(),
+            'callback' => $callback
+        );
+        $this->logger->debug("Sent WHOIS $nick");
+        $queue->ircWhois($nick);
+    }
+
+    public function onReceivedEach(EventInterface $event, Queue $queue)
+    {
+        if(method_exists($event, 'getCode')) {
+            if($event->getCode() == 307) {
+                $params = $event->getParams();
+                $nick = $params[1];
+                $this->authedNicks[$nick] = true;
+            }
+        }
+    }
+
+    public function onWhoisDone(ServerEventInterface $event, Queue $queue)
+    {
+        $params = $event->getParams();
+        $nick = $params[1];
+        if(!array_key_exists($nick, $this->authedNicks)) {
+            $this->authedNicks[$nick] = false;
+        }
+        if(array_key_exists($nick, $this->pendingCmd)) {
+            $cmd = $this->pendingCmd[$nick];
+            $callback = $cmd['callback'];
+            $params = $cmd['params'];
+            unset($this->pendingCmd[$nick]);
+
+            $params['authed'] = $this->authedNicks[$nick];
+            $callback($queue, $params);
+        }
+
+        // Cleanup
+        $now = time();
+        $this->pendingCmd = array_filter($this->pendingCmd, function($value) {
+            // Discard over 1 minute old
+            return ($now - $value->timestamp < 60);
+        });
+    }
+
+
     private function say($message, Queue $queue, Channel $channel = null)
-    {   
+    {
         if(isset($channel)) {
             $list = array($channel);
         } else {
@@ -98,7 +197,18 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
             }
         }
     }
-    
+    private function reply($message, Queue $queue, $receiver, $nick)
+    {
+        if($this->isChannelName($receiver)) {
+            $channel = $this->channels[$receiver];
+            if(isset($channel)) {
+                $this->say($message, $queue, $channel);
+            }
+        } else {
+            $queue->ircPrivmsg($nick, $message);
+        }
+    }
+
     private function checkJoinedall(Queue $queue)
     {
         if($this->joinedall) { return; }
@@ -106,5 +216,21 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
             if($channel->joined == false) { return; }
         }
         $this->emitter->emit('pintsize.joinedall', array($queue));
+    }
+
+    private function isNickIgnored(UserEventInterface $event)
+    {
+        $nick = $event->getNick();
+        if($nick == $event->getConnection()->getNickname()) {
+            return true;
+        }
+        if(in_array($nick, $this->ignoredNicks)) {
+            return true;
+        }
+    }
+
+    private function isChannelName($name)
+    {
+        return preg_match('/^#/', $name);
     }
 }
