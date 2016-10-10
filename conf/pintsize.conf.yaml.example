@@ -1,0 +1,13 @@
+# Copy this file to pintsize.conf.yaml and fill in the blanks
+
+connections:
+  - serverHostname: BLANK
+    username: BLANK
+    realname: BLANK
+    nickname: BLANK
+    serverport: BLANK
+    password: BLANK
+    options:
+      # Uncomment the following line if you need SSL.
+      # transport: ssl
+      force-ipv4: false
