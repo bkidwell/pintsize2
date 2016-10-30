@@ -6,9 +6,9 @@
 namespace Pintsize;
 
 use Phergie\Irc\Connection;
+use Pintsize\Common\Config;
 
-define('APPDIR', dirname(__DIR__));
-require APPDIR . '/vendor/autoload.php';
+require __DIR__ . '/../bootstrap.php';
 
 (function () {
     $nick = Config::get('connection.nickname');
@@ -18,7 +18,7 @@ require APPDIR . '/vendor/autoload.php';
     }
     $phergieConfig = array(
         'plugins' => array(
-            new Phergie\PintsizePlugin,
+            new PintsizePlugin,
             new \PSchwisow\Phergie\Plugin\AltNick\Plugin([
                 'nicks' => ["{$nick}_2", "{$nick}_3", "{$nick}_4"],
                 'recovery' => true,
