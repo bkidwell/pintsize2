@@ -5,7 +5,8 @@
         "phergie/phergie-irc-plugin-react-autojoin": "~2",
         "symfony/yaml": "^3.1",
         "bcosca/fatfree": "^3.5",
-        "symfony/console": "^3.1"
+        "symfony/console": "^3.1",
+        "league/csv": "^8.1"
     },
     "autoload": {
         "psr-4": {"Pintsize\\": "src/"}

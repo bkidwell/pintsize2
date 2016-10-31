@@ -2,3 +2,4 @@ vendor
 /nbproject/private/
 *.sublime-workspace
 /data/import
+/tmp

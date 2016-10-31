@@ -15,6 +15,7 @@ Plan
 
 Next steps
 
+* Importing old data works but is slow; use MySQL file import instead
 * Import ReactPHP Promises
 * Rewrite the WHOIS stuff to use Promises
 * Import ReactPHP MySQL library
