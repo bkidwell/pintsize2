@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <buildpath>
 	<buildpathentry kind="src" path="src"/>
-	<buildpathentry external="true" kind="lib" path="/home/brendan/Projects/pintsize/vendor"/>
 	<buildpathentry kind="con" path="org.eclipse.php.core.LANGUAGE"/>
+	<buildpathentry external="true" kind="lib" path="C:/Work/Code/Personal/pintsize/vendor"/>
 	<buildpathentry kind="src" path="bin"/>
 </buildpath>
