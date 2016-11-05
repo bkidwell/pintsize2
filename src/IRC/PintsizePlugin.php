@@ -128,6 +128,7 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
 
     private function checkAuth($nick, $replyTo, $callback)
     {
+        //TODO use NickServ's status command
         $this->logger->debug("Checking auth for $nick");
         if (array_key_exists($nick, $this->authedNicks)) {
             $callback(array(
@@ -156,7 +157,7 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
             if ($event->getCode() == 307) {
                 $params = $event->getParams();
                 $nick = $params[1];
-                $this->authedNicks[$nick] = true;
+                $this->authedNicks[$nick] = true; // TODO save for only 5 minutes ?
             }
         }
     }
@@ -166,7 +167,7 @@ class PintsizePlugin extends AbstractPlugin implements LoggerAwareInterface, Eve
         $params = $event->getParams();
         $nick = $params[1];
         if (!array_key_exists($nick, $this->authedNicks)) {
-            $this->authedNicks[$nick] = false;
+            $this->authedNicks[$nick] = false; // TODO save for only 5 minutes?
         }
         if (array_key_exists($nick, $this->pendingCmd)) {
             $cmd = $this->pendingCmd[$nick];
