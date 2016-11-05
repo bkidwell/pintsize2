@@ -4,4 +4,5 @@ vendor
 /nbproject/private/
 *.sublime-workspace
 /data/import
+/data/backups
 /tmp
