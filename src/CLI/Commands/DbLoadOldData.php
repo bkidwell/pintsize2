@@ -60,17 +60,19 @@ class DbLoadOldData extends Command
         $db->exec("ALTER TABLE $table DISABLE KEYS");
         $db->begin();
         echo "$filename: 0 rows\n";
-        //gc_collect_cycles();
         $csvValues = [];
         $writeValues = [];
         $notNull = ['artist', 'title'];
+        $isBit = ['is_authed', 'deleted'];
         while(!$file->eof()) {
             $csvRow = $file->fgetcsv();
             $colNum = 0;
             if($csvRow[0] == '') { continue; }
             foreach($columns as $column) {
                 $value = $csvRow[$colNum];
-                if($value == '' && !in_array($column, $notNull)) {
+                if(in_array($column, $isBit)) {
+                    $value = ($value == 1) ? true : false;
+                } elseif(strlen($value) == 0 && !in_array($column, $notNull)) {
                     $value = null;
                 }
                 $csvValues[$column] = $value;
@@ -82,6 +84,7 @@ class DbLoadOldData extends Command
             if($table == 'vote') {
                 $writeValues['source'] = 'irc';
             }
+
             $insertStatement->execute($writeValues);
 
             $i++;
@@ -91,7 +94,6 @@ class DbLoadOldData extends Command
             if($i % 10000 == 0) {
                 $db->commit();
                 $db->begin();
-                //gc_collect_cycles();
             }
         }
         $db->commit();
