@@ -5,16 +5,6 @@ SET time_zone = '+00:00';
 SET foreign_key_checks = 0;
 SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
 
-DROP TABLE IF EXISTS `play`;
-CREATE TABLE `play` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `time_utc` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `track_id` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `track_id` (`track_id`),
-  CONSTRAINT `play_ibfk_1` FOREIGN KEY (`track_id`) REFERENCES `track` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 DROP TABLE IF EXISTS `track`;
 CREATE TABLE `track` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -35,6 +25,15 @@ CREATE TABLE `track` (
   KEY `vote_average` (`vote_average`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS `play`;
+CREATE TABLE `play` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time_utc` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `track_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `track_id` (`track_id`),
+  CONSTRAINT `play_ibfk_1` FOREIGN KEY (`track_id`) REFERENCES `track` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DROP TABLE IF EXISTS `vote`;
 CREATE TABLE `vote` (
@@ -47,7 +46,7 @@ CREATE TABLE `vote` (
   `user_id` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
   `is_authed` bit(1) NOT NULL,
   `deleted` bit(1) NOT NULL DEFAULT b'0',
-  `comment` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `comment` varchar(200) COLLATE utf8mb4_unicode_ci NULL,
   PRIMARY KEY (`id`),
   KEY `time_utc` (`time_utc`),
   KEY `track_id` (`track_id`),
