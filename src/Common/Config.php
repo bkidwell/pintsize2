@@ -3,7 +3,7 @@ namespace Pintsize\Common;
 
 use Symfony\Component\Yaml\Yaml;
 
-class Config
+class Config extends ConfigKeys
 {
     private static $config;
 

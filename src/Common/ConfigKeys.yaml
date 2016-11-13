@@ -1,0 +1,186 @@
+database:
+  label: Database
+  settings:
+    host:
+      type: string
+      label: Hostname
+    port:
+      type: int
+      default: 3306
+      label: Port
+    dbname:
+      type: string
+      label: Database Name
+    username:
+      type: string
+      label: User Name
+    password:
+      type: string
+      label: Password
+irc:
+  label: IRC
+  settings:
+    channels:
+      type: longtext
+      lines: 3
+      label: Channels to join
+      hint: >
+        List of IRC channel names, separated by spaces. Each channel name must
+        begin with "#". By default, lines spoken by the bot in each channel are
+        sent as "notices"; if the bot is not allowed to send "notices" in a
+        channel, add "|privmsg" to that channel name in the list to speak as a
+        normal user instead. Example channel list: "#main|privmsg #pintsize"
+    admin_nicks:
+      type: longtext
+      lines: 3
+      label: Admin Nicks
+      hint: >
+        List of nicks, separated by spaces, who are allowed to use admin
+        commands (only if they are currently authenticated to the IRC network).
+    ignored_nicks:
+      type: longtext
+      lines: 3
+      label: Ignored Nicks
+      hint: >
+        List of nicks, separated by spaces, who will be completely ignored by
+        the bot. To prevent infinite loops, add any other bots resident in your
+        chat channels here.
+    server_hostname:
+      type: string
+      label: IRC Server Hostname
+    nick:
+      type: string
+      default: Pintsize
+      label: IRC Nick
+      hint: The bot's name in the chat room.
+    realname:
+      type: string
+      default: Pintsize
+      label: IRC Real Name
+      hint: Real name (for whois queries). Can include URL or other extra info.
+    username:
+      type: string
+      default: pintsize
+      label: IRC Username
+      hint: For authenticating to the IRC server.
+    password:
+      type: password
+      label: IRC Password
+      hint: NickServ or login password.
+    port:
+      type: int
+      default: 6697
+      label: IRC Port
+    use_tls:
+      type: bool
+      default: true
+      label: Use TLS (SSL)
+    force_ipv4:
+      type: bool
+      default: false
+      label: Force IPv4
+      hint: Use IPv4 connection instead of IPv6 by default.
+streaminfo:
+  label: Stream Info
+  settings:
+    status_url:
+      type: string
+      label: Stream Status URL
+      hint: URL of the audio stream's ".xspf" file.
+    poll_interval:
+      type: int
+      default: 10
+      label: Poll Interval
+      hint: Number of seconds between hits to the Stream Status URL to update current artist and title.
+    audio_urls:
+      type: longtext
+      lines: 3
+      label: Audio Stream URLs
+      hint: >
+        List of audio stream URLs separated by line breaks. Each URL should be
+        followed by a space character and then a label for the hyperlink to be
+        displayed on the web site. Example:<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://stream.example.com/128 128kbps mp3<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://stream.example.com/160 160kbps mp3"
+commands:
+  label: Bot Commands
+  columns: [Command and Aliases, Enabled]
+  settings:
+    help:
+      type: string
+      label: Help
+      default: "!help"
+    now_playing:
+      type: string
+      label: Now Playing
+      default: "!np !title"
+    vote:
+      type: string
+      label: Vote
+      default: "!v !vote"
+    unvote:
+      type: string
+      label: Unvote
+      default: "!unvote"
+    like:
+      type: string
+      label: Like
+      default: "!l"
+    hate:
+      type: string
+      label: Hate
+      default: "!h"
+    say:
+      type: string
+      label: Say
+      default: "!say"
+      hint: "(Admin only)"
+    do:
+      type: string
+      label: Do
+      default: "!do"
+      hint: "(Admin only" 
+responses:
+  label: Responses
+  columns: [Text, Reply To]
+  settings:
+    greeting:
+      type: longtext
+      lines: 3
+      label: Greeting
+      default: >
+        Hello ${nick}. I'm a bot for voting on the music being on this stream.
+        Say "${cmd_help}" for help.
+      hint: What to say when a user is trying to find the help command.
+    help:
+      type: longtext
+      lines: 3
+      label: Help
+      default: >
+        <b>!v [num]</b> = Vote -5 (bad) to 5 (good) | <b>!unvote</b> = Undo vote
+        | <b>!l</b> = Vote +3 | <b>!h</b> = Vote -3 | <b>!np</b> = What's
+        playing? | More info: [insert URL here]
+    now_playing:
+      type: longtext
+      lines: 2
+      label: Now Playing
+      default: >
+        ]] <b>Now playing:</b> ${stream_title}
+    vote:
+      type: longtext
+      lines: 2
+      label: Vote
+      default: >
+        You have voted ${stream_title} with ${value} points.
+    revote:
+      type: longtext
+      lines: 2
+      label: Re-Vote
+      default: >
+        You changed your vote to ${value} for ${stream_title}.
+    unvote:
+      type: longtext
+      lines: 2
+      label: Unvote
+      default: >
+        You undid your vote for ${stream_title}.
