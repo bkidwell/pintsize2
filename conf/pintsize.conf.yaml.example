@@ -11,3 +11,14 @@ connections:
       # Uncomment the following line if you need SSL.
       # transport: ssl
       force-ipv4: false
+
+database:
+  host: BLANK
+  #port: BLANK
+  dbname: BLANK
+  username: BLANK
+  password: BLANK
+
+mysql:
+  mysqldump_bin: mysqldump
+  mysql_bin: mysql

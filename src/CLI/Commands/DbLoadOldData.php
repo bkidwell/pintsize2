@@ -7,8 +7,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use League\Csv\Reader;
-use DB\SQL\Mapper;
 
 class DbLoadOldData extends Command
 {
@@ -39,35 +37,65 @@ class DbLoadOldData extends Command
         }
     }
     
-    private function doFile($filename, $table, $keymap, $db) {
+    private function doFile($filename, $table, $keymap, \DB\SQL $db) {
         $fpath = $this->path . '/' . $filename . '.csv';
         echo "$fpath\n";
-        $csv = Reader::createFromPath($fpath);
-        $csv->stripBom(true);
+        $file = new \SplFileObject($fpath, 'r');
 
         $i = 0;
-        $data = $csv->fetchAssoc(0);
+        $columns = $file->fgetcsv();
+        $columns[0] = $this->removeBom($columns[0]);
+
+        $toColumns = array_keys($keymap);
+        $insertStatement = $db->pdo()->prepare(
+            "INSERT INTO $table (`" .
+            implode('`, `', $toColumns) .
+            "`) VALUES (:" .
+            implode(', :', $toColumns) .
+            ")"
+        );
+        
+        $db->exec("ALTER TABLE $table DISABLE KEYS");
         $db->begin();
         echo "$filename: 0 rows\n";
-        foreach($data as $row) {
+        $csvValues = [];
+        $writeValues = [];
+        $notNull = ['artist', 'title'];
+        $isBit = ['is_authed', 'deleted'];
+        while(!$file->eof()) {
+            $csvRow = $file->fgetcsv();
+            $colNum = 0;
+            if($csvRow[0] == '') { continue; }
+            foreach($columns as $column) {
+                $value = $csvRow[$colNum];
+                if(in_array($column, $isBit)) {
+                    $value = ($value == 1) ? true : false;
+                } elseif(strlen($value) == 0 && !in_array($column, $notNull)) {
+                    $value = null;
+                }
+                $csvValues[$column] = $value;
+                $colNum++;
+            }
+            foreach($keymap as $to => $from) {
+                $writeValues[":$to"] = $csvValues[$from];
+            }
+            if($table == 'vote') {
+                $writeValues['source'] = 'irc';
+            }
+
+            $insertStatement->execute($writeValues);
+
             $i++;
-            if($i % 2000 == 0) {
-                $db->commit();
-                $db->begin();
+            if($i % 100 == 0) {
                 echo "\e[A$filename: $i rows\n";
             }
-
-            foreach(array_keys($row) as $key) {
-                if($row[$key] == '') { $row[$key] = null; }
+            if($i % 10000 == 0) {
+                $db->commit();
+                $db->begin();
             }
-
-            $track = new Mapper($db, $table);
-            foreach($keymap as $to => $from) {
-                $track->set($to, $row[$from]);
-            }
-            $track->save();
         }
         $db->commit();
+        $db->exec("ALTER TABLE $table ENABLE KEYS");
         echo "$i rows read.\n\n";
     }
 
@@ -110,5 +138,11 @@ class DbLoadOldData extends Command
                 ]
             ],
         ];
+    }
+    
+    private function removeBom($text) : string {
+        $bom = pack('H*','EFBBBF');
+        $text = preg_replace("/^$bom/", '', $text);
+        return $text;
     }
 }

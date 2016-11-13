@@ -19,7 +19,7 @@ class Config extends ConfigKeys
         return $result;
     }
 
-    public static function getF3Db()
+    public static function getF3Db() : \DB\SQL
     {
         return new \DB\SQL(
             'mysql:host=' . self::get('database.host') .

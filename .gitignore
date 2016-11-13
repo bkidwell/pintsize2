@@ -1,5 +1,8 @@
+.buildpath
+.settings/org.eclipse.php.core.prefs
 vendor
 /nbproject/private/
 *.sublime-workspace
 /data/import
+/data/backups
 /tmp
