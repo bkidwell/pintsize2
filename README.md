@@ -1,5 +1,11 @@
 # Pintsize
 
+# This project has been moved to BitBucket. This repository here is only an archive.
+
+I can't find a GUI for Git that's FOSS and works on a Linux desktop and satisfies my needs; TortoiseHg, using the Mercurial repository format, makes me happy. So I've moved this project to https://bitbucket.org/bkidwell/pintsize .
+
+----
+
 Next generation Pintsize!
 
 **project members** write your wishes in Issues or Wiki pages. Go nuts!
